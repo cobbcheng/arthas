@@ -1,0 +1,25 @@
+{
+  "name": "arthas",
+  "version": "1.0.0",
+  "description": "a http lib",
+  "main": "arthas.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cobbcheng/arthas.git"
+  },
+  "author": "chengkebin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cobbcheng/arthas/issues"
+  },
+  "homepage": "https://github.com/cobbcheng/arthas#readme",
+  "dependencies": {
+    "qs": "^6.9.1"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.9.1"
+  }
+}
