@@ -14,16 +14,7 @@
  *
  */
 
-import qs from 'qs'
-import _ from './utils'
-
-interface OptionsType {
-  headers?: object
-  baseUrl: string
-  catchCode?(err: CommonResponse<Error>): void
-  bodyMixinForUser?(body: object): object
-  urlMixin?(url: string): string
-}
+import querystring from './querystring'
 
 export interface CommonResponse<T> extends Response {
   code: number;
@@ -31,31 +22,36 @@ export interface CommonResponse<T> extends Response {
   data: T;
 }
 
-interface MethodOptionType {
-  headers?: object
+class ParamsType {
+  headers?: object;
+  query?: object;
+  body?: object;
+}
+
+class OptionsType extends ParamsType {
+  baseUrl?: string;
+  catchCode?(err: CommonResponse<Error>): void;
+  transformRequest?(options: ParamsType): ParamsType
 }
 
 const defaultHeaders = {
   'Content-Type': 'application/x-www-form-urlencoded',
-  'Accept': 'application/json, text/plain, */*'
+  Accept: 'application/json, text/plain, */*'
 }
 
-export default class Arthas {
-  commonHeaders?: object
-  baseUrl: string
-  catchCode?(err: CommonResponse<Error>): void
-  bodyMixinForUser?(body: object): object
-  urlMixin?(url: string): string
-
+export default class Arthas extends OptionsType {
   constructor (options: OptionsType) {
-    this.commonHeaders = options.headers
-    this.baseUrl = options.baseUrl
+    super()
+    this.headers = options.headers || {}
+    this.query = options.query || {}
+    this.body = options.body || {}
+    this.baseUrl = options.baseUrl || '/'
     this.catchCode = options.catchCode
-    this.bodyMixinForUser = options.bodyMixinForUser
-    this.urlMixin = options.urlMixin
+    this.transformRequest = options.transformRequest
   }
 
   private fetchFactory (config: Request): Promise<CommonResponse<any>> {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this
     return new Promise((resolve, reject): void => {
       fetch(config).then((response: Response): any => {
@@ -81,23 +77,29 @@ export default class Arthas {
   private headerMixin (options: object = {}): Headers {
     return new Headers({
       ...defaultHeaders,
-      ...this.commonHeaders,
+      ...this.headers,
       ...options
     })
   }
 
-  private pathGen (path: string, body?: object): string {
-    const fullPathReg = (path: string): boolean => /http(s)?:\/\//g.test(path)
-    const fullPath = `${fullPathReg(path) ? '' : this.baseUrl}${path}`
-    if (body) {
-      return `${fullPath}${fullPath.includes('?') ? '&' : '?'}${qs.stringify(body)}`
-    } else {
+  private pathGen (path: string, body = {}, customQuery = {}): string {
+    const fullPath = `${/http(s)?:\/\//g.test(path) ? '' : this.baseUrl}${path}`
+    const querySign = fullPath.includes('?') ? '&' : '?'
+    const query = {
+      ...body,
+      ...customQuery
+    }
+
+    if (Object.keys(query).length === 0) {
       return fullPath
+    } else {
+      return `${fullPath}${querySign}${querystring(query)}`
     }
   }
 
   private bodyMixin (body: object = {}): object {
     return {
+      ...this.body,
       ...body
     }
   }
@@ -106,35 +108,56 @@ export default class Arthas {
     const headerValue = headers.get('Content-Type')
 
     if (headerValue === 'application/x-www-form-urlencoded') {
-      return qs.stringify(body)
+      return querystring(body)
     } else {
       return JSON.stringify(body)
+    }
+  }
+
+  private runTransformRequest () {
+    if (typeof this.transformRequest !== 'function') {
+      return
+    }
+
+    const params = this.transformRequest({
+      headers: this.headers,
+      body: this.body,
+      query: this.query
+    })
+
+    if (Object.prototype.toString.call(params) === '[object Object]') {
+      this.headers = {
+        ...this.headers,
+        ...params.headers
+      }
+      this.query = {
+        ...this.query,
+        ...params.query
+      }
+      this.body = {
+        ...this.body,
+        ...params.body
+      }
     }
   }
 
   public get (
     path: string,
     body?: object,
-    options?: MethodOptionType
+    options: ParamsType = {}
   ): Promise<CommonResponse<any>> {
-    const userHeader = options && options.headers
+    this.runTransformRequest()
     const requestConfig: RequestInit = {
       method: 'GET',
-      headers: this.headerMixin(userHeader),
+      headers: this.headerMixin(options.headers),
       mode: 'cors',
       cache: 'default'
     }
-    const url = this.urlMixin
-      ? this.urlMixin(
-        this.pathGen(
-          path,
-          this.bodyMixin(body)
-        )
-      )
-      : this.pathGen(
-        path,
-        this.bodyMixin(body)
-      )
+    const url = this.pathGen(
+      path,
+      this.bodyMixin(body),
+      this.query
+    )
     const request = new Request(url, requestConfig)
 
     return this.fetchFactory(request)
@@ -143,28 +166,23 @@ export default class Arthas {
   public post (
     path: string,
     body?: object,
-    options?: MethodOptionType
+    options: ParamsType = {}
   ): Promise<CommonResponse<any>> {
-    const userHeader = options && options.headers
-    const headers = this.headerMixin(userHeader)
-    const bodyFn =
-      _.isFunction(this.bodyMixinForUser)
-        ? _.compose(this.bodyMixinForUser, this.bodyMixin)
-        : this.bodyMixin
+    this.runTransformRequest()
+    const headers = this.headerMixin(options.headers)
 
     const requestConfig: RequestInit = {
       method: 'POST',
       headers,
       mode: 'cors',
       cache: 'default',
-      body: this.bodyParser(bodyFn(body), headers)
+      body: this.bodyParser(this.bodyMixin(body), headers)
     }
 
-    const url = this.urlMixin
-      ? this.urlMixin(
-        this.pathGen(path)
-      )
-      : this.pathGen(path)
+    const url = this.pathGen(path, {}, {
+      ...this.query,
+      ...options.query
+    })
 
     const request = new Request(url, requestConfig)
 
