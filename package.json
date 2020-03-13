@@ -2,7 +2,7 @@
   "name": "arthas",
   "version": "1.5.0",
   "description": "a http lib",
-  "main": "arthas.ts",
+  "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/cobbcheng/arthas/issues"
   },
-  "homepage": "https://github.com/cobbcheng/arthas#readme"
+  "homepage": "https://github.com/cobbcheng/arthas#readme",
+  "peerDependencies": {
+    "@vue/composition-api": "^0.4.0"
+  },
+  "devDependencies": {
+    "vue": "^2.6.11"
+  }
 }

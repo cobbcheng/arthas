@@ -11,26 +11,28 @@
       action && action(err.code)
     }
  * })
+ * 统一传参：query查询，body请求参数，header请求头，皆为object类型
+ * 统一返回：object: { data, msg, code }，code包括2xx-5xx，以及约定的0-xxxxx（eg：20102等）
  *
  */
 
 import querystring from './querystring'
 
-export interface CommonResponse<T> extends Response {
-  code: number;
-  msg?: string|null;
-  data: T;
+export interface CommonResponse {
+  code: any;
+  msg?: any;
+  data: any;
 }
 
-class ParamsType {
+interface ParamsType {
   headers?: object;
   query?: object;
   body?: object;
 }
 
-class OptionsType extends ParamsType {
+export interface OptionsType extends ParamsType {
   baseUrl?: string;
-  catchCode?(err: CommonResponse<Error>): void;
+  catchCode?(err: CommonResponse): void;
   transformRequest?(options: ParamsType): ParamsType
 }
 
@@ -39,9 +41,15 @@ const defaultHeaders = {
   Accept: 'application/json, text/plain, */*'
 }
 
-export default class Arthas extends OptionsType {
+export default class Arthas {
+  baseUrl?: string;
+  catchCode?(err: CommonResponse): void;
+  transformRequest?(options: ParamsType): ParamsType
+  headers?: object
+  query?: object
+  body?: object
+
   constructor (options: OptionsType) {
-    super()
     this.headers = options.headers || {}
     this.query = options.query || {}
     this.body = options.body || {}
@@ -50,26 +58,37 @@ export default class Arthas extends OptionsType {
     this.transformRequest = options.transformRequest
   }
 
-  private fetchFactory (config: Request): Promise<CommonResponse<any>> {
+  private createFetch (config: Request): Promise<CommonResponse> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this
+    const catchCode = this.catchCode
+    const cerateErrData = (err: Response): CommonResponse => ({
+      code: err.status,
+      msg: '',
+      data: null
+    })
+
     return new Promise((resolve, reject): void => {
+      function handleError (err: Response) {
+        const errData = cerateErrData(err)
+        catchCode && catchCode(errData)
+        reject(errData)
+      }
+
       fetch(config).then((response: Response): any => {
-        if (response.ok && response.status === 200) {
+        if (response.ok) {
           return response.json()
         } else {
-          reject(response)
+          handleError(response)
         }
-      }).then((res: CommonResponse<any>): void => {
-        if (!res.code || res.code === 0) {
+      }).then((res: CommonResponse): void => {
+        if (res.code === 0) {
           resolve(res)
         } else {
+          catchCode && catchCode(res)
           reject(res)
-          self.catchCode && self.catchCode(res)
         }
-      }).catch((err: CommonResponse<Error>): void => {
-        reject(err)
-        self.catchCode && self.catchCode(err)
+      }).catch((err: Response): void => {
+        handleError(err)
       })
     })
   }
@@ -145,7 +164,7 @@ export default class Arthas extends OptionsType {
     path: string,
     body?: object,
     options: ParamsType = {}
-  ): Promise<CommonResponse<any>> {
+  ): Promise<CommonResponse> {
     this.runTransformRequest()
     const requestConfig: RequestInit = {
       method: 'GET',
@@ -160,14 +179,14 @@ export default class Arthas extends OptionsType {
     )
     const request = new Request(url, requestConfig)
 
-    return this.fetchFactory(request)
+    return this.createFetch(request)
   }
 
   public post (
     path: string,
     body?: object,
     options: ParamsType = {}
-  ): Promise<CommonResponse<any>> {
+  ): Promise<CommonResponse> {
     this.runTransformRequest()
     const headers = this.headerMixin(options.headers)
 
@@ -186,6 +205,6 @@ export default class Arthas extends OptionsType {
 
     const request = new Request(url, requestConfig)
 
-    return this.fetchFactory(request)
+    return this.createFetch(request)
   }
 }

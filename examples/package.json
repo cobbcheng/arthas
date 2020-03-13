@@ -1,0 +1,14 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "serve": "npx vue serve"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vue/composition-api": "^0.4.0"
+  }
+}
