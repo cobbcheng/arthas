@@ -123,14 +123,18 @@ export default class Arthas {
             };
         }
     }
+    createRequest(method, headers, body) {
+        return {
+            method,
+            headers,
+            mode: 'cors',
+            cache: 'default',
+            body
+        };
+    }
     get(path, body, options = {}) {
         this.runTransformRequest();
-        const requestConfig = {
-            method: 'GET',
-            headers: this.headerMixin(options.headers),
-            mode: 'cors',
-            cache: 'default'
-        };
+        const requestConfig = this.createRequest('GET', this.headerMixin(options.headers));
         const url = this.pathGen(path, this.bodyMixin(body), this.query);
         const request = new Request(url, requestConfig);
         return this.createFetch(request);
@@ -138,13 +142,7 @@ export default class Arthas {
     post(path, body, options = {}) {
         this.runTransformRequest();
         const headers = this.headerMixin(options.headers);
-        const requestConfig = {
-            method: 'POST',
-            headers,
-            mode: 'cors',
-            cache: 'default',
-            body: this.bodyParser(this.bodyMixin(body), headers)
-        };
+        const requestConfig = this.createRequest('POST', headers, this.bodyParser(this.bodyMixin(body), headers));
         const url = this.pathGen(path, {}, {
             ...this.query,
             ...options.query

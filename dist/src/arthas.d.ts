@@ -44,6 +44,7 @@ export default class Arthas {
     private bodyMixin;
     private bodyParser;
     private runTransformRequest;
+    private createRequest;
     get(path: string, body?: object, options?: ParamsType): Promise<CommonResponse>;
     post(path: string, body?: object, options?: ParamsType): Promise<CommonResponse>;
 }
