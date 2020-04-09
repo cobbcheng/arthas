@@ -2,6 +2,7 @@ import Arthas, { OptionsType } from './arthas'
 import { createUseArthas } from './use-arthas'
 
 export { CommonResponse } from './arthas'
+export { Arthas }
 
 export default function createArthas (opt: OptionsType) {
   const arthas: Arthas = new Arthas(opt)

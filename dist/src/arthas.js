@@ -20,6 +20,7 @@ const defaultHeaders = {
     'Content-Type': 'application/x-www-form-urlencoded',
     Accept: 'application/json, text/plain, */*'
 };
+export const isObject = (val) => val !== null && typeof val === 'object';
 export default class Arthas {
     constructor(options) {
         this.headers = options.headers || {};
@@ -132,15 +133,27 @@ export default class Arthas {
             body
         };
     }
-    get(path, body, options = {}) {
+    get(path, body, options) {
         this.runTransformRequest();
+        if (!isObject(options)) {
+            options = {};
+        }
+        if (!isObject(body)) {
+            body = {};
+        }
         const requestConfig = this.createRequest('GET', this.headerMixin(options.headers));
         const url = this.pathGen(path, this.bodyMixin(body), this.query);
         const request = new Request(url, requestConfig);
         return this.createFetch(request);
     }
-    post(path, body, options = {}) {
+    post(path, body, options) {
         this.runTransformRequest();
+        if (!isObject(body)) {
+            body = {};
+        }
+        if (!isObject(options)) {
+            options = {};
+        }
         const headers = this.headerMixin(options.headers);
         const requestConfig = this.createRequest('POST', headers, this.bodyParser(this.bodyMixin(body), headers));
         const url = this.pathGen(path, {}, {

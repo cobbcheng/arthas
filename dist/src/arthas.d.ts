@@ -30,6 +30,7 @@ export interface OptionsType extends ParamsType {
     catchCode?(err: CommonResponse): void;
     transformRequest?(options: ParamsType): ParamsType;
 }
+export declare const isObject: (val: unknown) => val is Record<any, any>;
 export default class Arthas {
     baseUrl?: string;
     catchCode?(err: CommonResponse): void;
@@ -45,8 +46,12 @@ export default class Arthas {
     private bodyParser;
     private runTransformRequest;
     private createRequest;
-    get(path: string, body?: object, options?: ParamsType): Promise<CommonResponse>;
-    post(path: string, body?: object, options?: ParamsType): Promise<CommonResponse>;
+    get(path: string): Promise<CommonResponse>;
+    get(path: string, body: object): Promise<CommonResponse>;
+    get(path: string, body: object, options: ParamsType): Promise<CommonResponse>;
+    post(path: string): Promise<CommonResponse>;
+    post(path: string, body: object): Promise<CommonResponse>;
+    post(path: string, body: object, options: ParamsType): Promise<CommonResponse>;
 }
 export {};
 //# sourceMappingURL=arthas.d.ts.map

@@ -41,6 +41,9 @@ const defaultHeaders = {
   Accept: 'application/json, text/plain, */*'
 }
 
+export const isObject = (val: unknown): val is Record<any, any> =>
+  val !== null && typeof val === 'object'
+
 export default class Arthas {
   baseUrl?: string;
   catchCode?(err: CommonResponse): void;
@@ -161,7 +164,7 @@ export default class Arthas {
   }
 
   private createRequest (
-    method: 'GET'|'POST', 
+    method: 'GET'|'POST',
     headers: Headers,
     body?: string
   ): RequestInit {
@@ -174,14 +177,26 @@ export default class Arthas {
     }
   }
 
+  public get (path: string): Promise<CommonResponse>
+  public get (path: string, body: object): Promise<CommonResponse>
+  public get (path: string, body: object, options: ParamsType): Promise<CommonResponse>
   public get (
     path: string,
-    body?: object,
-    options: ParamsType = {}
+    body?: any,
+    options?: any
   ): Promise<CommonResponse> {
     this.runTransformRequest()
+
+    if (!isObject(options)) {
+      options = {}
+    }
+
+    if (!isObject(body)) {
+      body = {}
+    }
+
     const requestConfig: RequestInit = this.createRequest(
-      'GET', 
+      'GET',
       this.headerMixin(options.headers)
     )
     const url = this.pathGen(
@@ -194,30 +209,39 @@ export default class Arthas {
     return this.createFetch(request)
   }
 
+  public post (path: string): Promise<CommonResponse>
+  public post (path: string, body: object): Promise<CommonResponse>
+  public post (path: string, body: object, options: ParamsType): Promise<CommonResponse>
   public post (
     path: string,
-    body?: object,
-    options: ParamsType = {}
+    body?: any,
+    options?: any
   ): Promise<CommonResponse> {
     this.runTransformRequest()
-    const headers = this.headerMixin(options.headers)
 
+    if (!isObject(body)) {
+      body = {}
+    }
+    if (!isObject(options)) {
+      options = {}
+    }
+
+    const headers = this.headerMixin(options.headers)
     const requestConfig: RequestInit = this.createRequest(
       'POST',
       headers,
       this.bodyParser(
-        this.bodyMixin(body), 
+        this.bodyMixin(body),
         headers
       )
     )
-
     const url = this.pathGen(path, {}, {
       ...this.query,
       ...options.query
     })
 
     const request = new Request(
-      url, 
+      url,
       requestConfig
     )
 

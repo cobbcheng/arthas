@@ -1,30 +1,44 @@
 import { reactive, onMounted, toRefs } from '@vue/composition-api'
-import Arthas from './arthas'
+import Arthas, { isObject } from './arthas'
 
-export const createUseArthas = (arthas: Arthas) => (
-  path: string, 
-  method: 'get' | 'post',
-  options?: object, 
-  params?: object
-): object => {
-  const data = reactive({
-    code: null,
-    data: undefined,
-    msg: undefined
-  })
+export function createUseArthas (arthas: Arthas) {
+  function useArthas (path: string, method: 'get' | 'post'): object
+  function useArthas (path: string, method: 'get' | 'post', options: object): object
+  function useArthas (path: string, method: 'get' | 'post', options: object, params: object): object
+  function useArthas (
+    path: string,
+    method: 'get' | 'post',
+    options?: any,
+    params?: any
+  ): object {
+    const data = reactive({
+      code: null,
+      data: undefined,
+      msg: undefined
+    })
 
-  onMounted(async () => {
-    try {
-      const res = await arthas[method](path, options, params)
-      data.code = res.code
-      data.data = res.data
-      data.msg = res.msg
-    } catch (e) {
-      data.code = e.code
-      data.data = e.data
-      data.msg = e.msg
+    if (!isObject(options)) {
+      options = {}
     }
-  })
-  
-  return toRefs(data)
+    if (!isObject(params)) {
+      options = {}
+    }
+
+    onMounted(async () => {
+      let res
+      try {
+        res = await arthas[method](path, options, params)
+      } catch (e) {
+        res = e
+      } finally {
+        data.code = res.code
+        data.data = res.data
+        data.msg = res.msg
+      }
+    })
+
+    return toRefs(data)
+  }
+
+  return useArthas
 }
