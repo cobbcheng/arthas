@@ -1,7 +1,6 @@
 import Arthas, { OptionsType } from './arthas';
 export { CommonResponse } from './arthas';
-export { Arthas };
-export default function createArthas(opt: OptionsType): {
+export declare function createArthas(opt: OptionsType): {
     arthas: Arthas;
     useArthas: {
         (path: string, method: "get" | "post"): import("./arthas").CommonResponse;
@@ -9,4 +8,5 @@ export default function createArthas(opt: OptionsType): {
         (path: string, method: "get" | "post", options: object, params: object): import("./arthas").CommonResponse;
     };
 };
+export default Arthas;
 //# sourceMappingURL=index.d.ts.map
