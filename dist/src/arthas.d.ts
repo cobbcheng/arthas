@@ -30,7 +30,6 @@ export interface OptionsType extends ParamsType {
     catchCode?(err: CommonResponse): void;
     transformRequest?(options: ParamsType): ParamsType;
 }
-export declare const isObject: (val: unknown) => val is Record<any, any>;
 export default class Arthas {
     baseUrl?: string;
     catchCode?(err: CommonResponse): void;

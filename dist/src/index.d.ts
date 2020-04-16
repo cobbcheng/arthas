@@ -4,9 +4,9 @@ export { Arthas };
 export default function createArthas(opt: OptionsType): {
     arthas: Arthas;
     useArthas: {
-        (path: string, method: "get" | "post"): object;
-        (path: string, method: "get" | "post", options: object): object;
-        (path: string, method: "get" | "post", options: object, params: object): object;
+        (path: string, method: "get" | "post"): import("./arthas").CommonResponse;
+        (path: string, method: "get" | "post", options: object): import("./arthas").CommonResponse;
+        (path: string, method: "get" | "post", options: object, params: object): import("./arthas").CommonResponse;
     };
 };
 //# sourceMappingURL=index.d.ts.map

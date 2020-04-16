@@ -1,5 +1,9 @@
+/*
+  hooks api for vue componsition-api
+  chengkebin
+*/
 import { reactive, onMounted, toRefs } from '@vue/composition-api';
-import { isObject } from './arthas';
+import { isObject } from './helper';
 export function createUseArthas(arthas) {
     function useArthas(path, method, options, params) {
         const data = reactive({

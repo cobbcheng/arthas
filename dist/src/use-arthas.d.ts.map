@@ -1,1 +1,1 @@
-{"version":3,"file":"use-arthas.d.ts","sourceRoot":"","sources":["../../src/use-arthas.ts"],"names":[],"mappings":"AACA,OAAO,MAAoB,MAAM,UAAU,CAAA;AAE3C,wBAAgB,eAAe,CAAE,MAAM,EAAE,MAAM;;;;EAwC9C"}
+{"version":3,"file":"use-arthas.d.ts","sourceRoot":"","sources":["../../src/use-arthas.ts"],"names":[],"mappings":"AAKA,OAAO,MAAM,EAAE,EAAE,cAAc,EAAE,MAAM,UAAU,CAAA;AAGjD,wBAAgB,eAAe,CAAE,MAAM,EAAE,MAAM;;;;EAwC9C"}

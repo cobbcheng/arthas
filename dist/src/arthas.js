@@ -16,11 +16,11 @@
  *
  */
 import querystring from './querystring';
+import { isObject } from './helper';
 const defaultHeaders = {
     'Content-Type': 'application/x-www-form-urlencoded',
     Accept: 'application/json, text/plain, */*'
 };
-export const isObject = (val) => val !== null && typeof val === 'object';
 export default class Arthas {
     constructor(options) {
         this.headers = options.headers || {};
@@ -74,10 +74,7 @@ export default class Arthas {
     pathGen(path, body = {}, customQuery = {}) {
         const fullPath = `${/http(s)?:\/\//g.test(path) ? '' : this.baseUrl}${path}`;
         const querySign = fullPath.includes('?') ? '&' : '?';
-        const query = {
-            ...body,
-            ...customQuery
-        };
+        const query = Object.assign({}, body, customQuery);
         if (Object.keys(query).length === 0) {
             return fullPath;
         }
@@ -86,10 +83,7 @@ export default class Arthas {
         }
     }
     bodyMixin(body = {}) {
-        return {
-            ...this.body,
-            ...body
-        };
+        return Object.assign({}, this.body, body);
     }
     bodyParser(body = {}, headers) {
         const headerValue = headers.get('Content-Type');
@@ -109,19 +103,10 @@ export default class Arthas {
             body: this.body,
             query: this.query
         });
-        if (Object.prototype.toString.call(params) === '[object Object]') {
-            this.headers = {
-                ...this.headers,
-                ...params.headers
-            };
-            this.query = {
-                ...this.query,
-                ...params.query
-            };
-            this.body = {
-                ...this.body,
-                ...params.body
-            };
+        if (isObject(params)) {
+            this.headers = Object.assign({}, this.headers, params.headers);
+            this.query = Object.assign({}, this.query, params.query);
+            this.body = Object.assign({}, this.body, params.body);
         }
     }
     createRequest(method, headers, body) {

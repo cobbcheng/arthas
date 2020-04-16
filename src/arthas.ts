@@ -17,6 +17,7 @@
  */
 
 import querystring from './querystring'
+import { isObject } from './helper'
 
 export interface CommonResponse {
   code: any;
@@ -40,9 +41,6 @@ const defaultHeaders = {
   'Content-Type': 'application/x-www-form-urlencoded',
   Accept: 'application/json, text/plain, */*'
 }
-
-export const isObject = (val: unknown): val is Record<any, any> =>
-  val !== null && typeof val === 'object'
 
 export default class Arthas {
   baseUrl?: string;
@@ -107,10 +105,7 @@ export default class Arthas {
   private pathGen (path: string, body = {}, customQuery = {}): string {
     const fullPath = `${/http(s)?:\/\//g.test(path) ? '' : this.baseUrl}${path}`
     const querySign = fullPath.includes('?') ? '&' : '?'
-    const query = {
-      ...body,
-      ...customQuery
-    }
+    const query = Object.assign({}, body, customQuery)
 
     if (Object.keys(query).length === 0) {
       return fullPath
@@ -120,10 +115,7 @@ export default class Arthas {
   }
 
   private bodyMixin (body: object = {}): object {
-    return {
-      ...this.body,
-      ...body
-    }
+    return Object.assign({}, this.body, body)
   }
 
   private bodyParser (body: object = {}, headers: Headers): string {
@@ -147,19 +139,10 @@ export default class Arthas {
       query: this.query
     })
 
-    if (Object.prototype.toString.call(params) === '[object Object]') {
-      this.headers = {
-        ...this.headers,
-        ...params.headers
-      }
-      this.query = {
-        ...this.query,
-        ...params.query
-      }
-      this.body = {
-        ...this.body,
-        ...params.body
-      }
+    if (isObject(params)) {
+      this.headers = Object.assign({}, this.headers, params.headers)
+      this.query = Object.assign({}, this.query, params.query)
+      this.body = Object.assign({}, this.body, params.body)
     }
   }
 
